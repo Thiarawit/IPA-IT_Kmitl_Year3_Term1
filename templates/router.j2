@@ -1,0 +1,40 @@
+{% for vrf in vrfs %}
+ip vrf {{ vrf.name }}
+{% if vrf.rd %}
+ rd {{ vrf.rd }}
+{% endif %}
+ exit
+{% endfor %}
+{% for interface in interfaces %}
+interface {{ interface.name }}
+ ip vrf forwarding {{ interface.vrf }}
+{% if interface.address == "dhcp" %}
+ ip address dhcp
+{% else %}
+ ip address {{ interface.address }}
+{% endif %}
+{% if interface.nat %}
+ ip nat {{ interface.nat }}
+{% endif %}
+ no shutdown
+ exit
+{% endfor %}
+{% for ospf in ospf_processes %}
+router ospf {{ ospf.process }} vrf {{ ospf.vrf }}
+{% for item in ospf.networks %}
+ network {{ item.network }} {{ item.wildcard }} area {{ item.area }}
+{% endfor %}
+{% if ospf.default_information %}
+ default-information {{ ospf.default_information }}
+{% endif %}
+ exit
+{% endfor %}
+{% for route in static_routes %}
+{{ route }}
+{% endfor %}
+{% for acl in acls %}
+{{ acl }}
+{% endfor %}
+{% if nat_rule %}
+{{ nat_rule }}
+{% endif %}
